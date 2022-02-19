@@ -1,3 +1,5 @@
+### Extension for Google Chrome
+
 Automatically removes the twitter login wall, added in August 2021.
 
 Perfectly renders the "Twitter experience while not logged" as it was prior to the login wall deployment.
