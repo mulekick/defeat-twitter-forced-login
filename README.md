@@ -10,6 +10,6 @@ Finally, the extension is completely free of any "buy me a beer", "buy me a coff
 
 ## Status
 
-02/21/2022 : **REFUSED** by the Chrome Web Store 😡 (motive: ["facilitates unauthorized access to content on websites..."](https://developer.chrome.com/docs/webstore/program_policies/#prohibited-products))
+02/21/2022 : **REFUSED** by the Chrome Web Store 😡 for ["facilitating unauthorized access to content on websites..."](https://developer.chrome.com/docs/webstore/program_policies/#prohibited-products)
 
 02/25/2022 : **ACCEPTED** as a [Firefox Add-on](https://addons.mozilla.org/en-US/firefox/addon/defeat-twitter-forced-login/) 😃
