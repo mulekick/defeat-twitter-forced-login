@@ -145,109 +145,110 @@ const
 // store as global
 let CONTENT_FOCUS_DIV_ON = false;
 
-window
-    // eslint-disable-next-line no-unused-vars
-    .onload = async e => {
+// discard the window.onload event handler and use an IIFE instead to solve the problem
+// of the script not loading after right click on username > open in new tab / new window
+(async() => {
 
-        try {
+    try {
 
-            let
-                [ observer, observed ] = [ null, null ];
+        let
+            [ observer, observed ] = [ null, null ];
 
-            // let'ssss go ...
-            console.log(`${ EXTENSION_NAME }: page is fully loaded, start observing DOM mutations.`);
+        // let'ssss go ...
+        console.log(`${ EXTENSION_NAME }: page is fully loaded, start observing DOM mutations.`);
 
-            if (document.querySelector(`#layers`) === null)
-                // wait for the layers div to load
-                await retrieveChildNode(`#react-root > div > div`, null, `layers`);
+        if (document.querySelector(`#layers`) === null)
+            // wait for the layers div to load
+            await retrieveChildNode(`#react-root > div > div`, null, `layers`);
 
-            // remove login and cookie invite immediately - eventually no, so the experience remains 100% consistent with pre-login wall twitter
-            // document.querySelector(`#layers > div.css-1dbjc4n.r-aqfbo4.r-1p0dtai.r-1d2f490.r-12vffkv.r-1xcajam.r-zchlnj`).attributes.setNamedItem(createStyleAttr(DOM_NODE_HIDDEN));
+        // remove login and cookie invite immediately - eventually no, so the experience remains 100% consistent with pre-login wall twitter
+        // document.querySelector(`#layers > div.css-1dbjc4n.r-aqfbo4.r-1p0dtai.r-1d2f490.r-12vffkv.r-1xcajam.r-zchlnj`).attributes.setNamedItem(createStyleAttr(DOM_NODE_HIDDEN));
 
-            // monitor layer div
-            observed = document.querySelector(`#layers`);
+        // monitor layer div
+        observed = document.querySelector(`#layers`);
 
-            // setup content focus observer
-            observer = createNodeSubtreeObserver(
-                CONTENT_FOCUS_DIV_STYLE,
-                null,
-                // fix html scrolling
-                () => {
-                    CONTENT_FOCUS_DIV_ON = true;
-                    document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_DISABLED));
-                },
-                () => {
-                    CONTENT_FOCUS_DIV_ON = false;
+        // setup content focus observer
+        observer = createNodeSubtreeObserver(
+            CONTENT_FOCUS_DIV_STYLE,
+            null,
+            // fix html scrolling
+            () => {
+                CONTENT_FOCUS_DIV_ON = true;
+                document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_DISABLED));
+            },
+            () => {
+                CONTENT_FOCUS_DIV_ON = false;
+                document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_ENABLED));
+            },
+            false,
+            null,
+            null);
+
+        // start observing
+        observer.observe(observed, {
+            // observe entire node subtree
+            subtree: true,
+            // for addition/removal of child nodes
+            childList: true
+        });
+
+        // setup annoying div observer
+        observer = createNodeSubtreeObserver(
+            ANNOYING_DIV_STYLE,
+            null,
+            // remove annoyance
+            addedNode => {
+                addedNode.attributes.setNamedItem(createStyleAttr(DOM_NODE_HIDDEN));
+                // goodbye annoyance.
+                console.log(`${ EXTENSION_NAME }: annoyance removed.`);
+            },
+            null,
+            false,
+            null,
+            null);
+
+        // start observing
+        observer.observe(observed, {
+            // observe entire node subtree
+            subtree: true,
+            // for addition/removal of child nodes
+            childList: true
+        });
+
+        // monitor html element
+        observed = document.querySelector(`html`);
+
+        // setup html style observer
+        observer = createNodeAttrObserver(
+            `HTML`,
+            `style`,
+            // fix html scrolling
+            target => {
+                if (CONTENT_FOCUS_DIV_ON === false && target.attributes.getNamedItem(`style`).value === ROOT_WINDOW_SCROLLING_DISABLED)
+                    // reset
                     document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_ENABLED));
-                },
-                false,
-                null,
-                null);
+            },
+            false,
+            null,
+            null);
 
-            // start observing
-            observer.observe(observed, {
-                // observe entire node subtree
-                subtree: true,
-                // for addition/removal of child nodes
-                childList: true
-            });
-
-            // setup annoying div observer
-            observer = createNodeSubtreeObserver(
-                ANNOYING_DIV_STYLE,
-                null,
-                // remove annoyance
-                addedNode => {
-                    addedNode.attributes.setNamedItem(createStyleAttr(DOM_NODE_HIDDEN));
-                    // goodbye annoyance.
-                    console.log(`${ EXTENSION_NAME }: annoyance removed.`);
-                },
-                null,
-                false,
-                null,
-                null);
-
-            // start observing
-            observer.observe(observed, {
-                // observe entire node subtree
-                subtree: true,
-                // for addition/removal of child nodes
-                childList: true
-            });
-
-            // monitor html element
-            observed = document.querySelector(`html`);
-
-            // setup html style observer
-            observer = createNodeAttrObserver(
-                `HTML`,
-                `style`,
-                // fix html scrolling
-                target => {
-                    if (CONTENT_FOCUS_DIV_ON === false && target.attributes.getNamedItem(`style`).value === ROOT_WINDOW_SCROLLING_DISABLED)
-                        // reset
-                        document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_ENABLED));
-                },
-                false,
-                null,
-                null);
-
-            // start observing
-            observer.observe(observed, {
-                // observe only root node
-                subtree: false,
-                // modifications of attributes
-                attributes: true,
-                // filter
-                attributeFilter: [ `style` ],
-                // memorize
-                attributeOldValue: true
-            });
+        // start observing
+        observer.observe(observed, {
+            // observe only root node
+            subtree: false,
+            // modifications of attributes
+            attributes: true,
+            // filter
+            attributeFilter: [ `style` ],
+            // memorize
+            attributeOldValue: true
+        });
 
 
-        } catch (err) {
-            // output message to stderr
-            console.error(`${ EXTENSION_NAME }: ${ err.message }`);
-        }
+    } catch (err) {
+        // output message to stderr
+        console.error(`${ EXTENSION_NAME }: ${ err.message }`);
+    }
 
-    };
+})();
+
