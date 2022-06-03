@@ -9,6 +9,8 @@ const
     ROOT_WINDOW_SCROLLING_ENABLED = `overflow-y: scroll; overscroll-behavior-y: none; font-size: 15px;`,
     ROOT_WINDOW_SCROLLING_DISABLED = `overflow: hidden; overscroll-behavior-y: none; font-size: 15px; margin-right: 17px;`,
     DOM_NODE_HIDDEN = `display: none`,
+    // debug flag
+    PRINT_DEBUG_MSG = false,
     // create style attribute
     createStyleAttr = value => {
         const
@@ -35,7 +37,8 @@ const
                                 // if it is a match
                                 if (addedNode.nodeType === ELEMENT_NODE && (addedNode.id === idMatch || String(addedNode.classList) === classMatch)) {
                                     // log
-                                    console.log(`${ EXTENSION_NAME }: ${ addedNode.nodeName } element with id ${ addedNode.id } and classes ${ addedNode.classList } added to DOM.`);
+                                    if (PRINT_DEBUG_MSG === true)
+                                        console.log(`${ EXTENSION_NAME }: ${ addedNode.nodeName } element with id ${ addedNode.id } and classes ${ addedNode.classList } added to DOM.`);
                                     // execute
                                     if (executeOnAppend && typeof executeOnAppend === `function`)
                                         executeOnAppend(addedNode);
@@ -53,7 +56,8 @@ const
                                 // if it is a match
                                 if (removedNode.nodeType === ELEMENT_NODE && (removedNode.id === idMatch || String(removedNode.classList) === classMatch)) {
                                     // log
-                                    console.log(`${ EXTENSION_NAME }: ${ removedNode.nodeName } element with id ${ removedNode.id } and classes ${ removedNode.classList } removed from DOM.`);
+                                    if (PRINT_DEBUG_MSG === true)
+                                        console.log(`${ EXTENSION_NAME }: ${ removedNode.nodeName } element with id ${ removedNode.id } and classes ${ removedNode.classList } removed from DOM.`);
                                     // execute
                                     if (executeOnRemove && typeof executeOnRemove === `function`)
                                         executeOnRemove(removedNode);
@@ -94,7 +98,8 @@ const
                             // if it is a match
                             if (target.tagName === tagMatch && attributeName === attrMatch) {
                                 // log
-                                console.log(`${ EXTENSION_NAME }: ${ attributeName } attribute was modified on ${ target.tagName } element to ${ target.attributes.getNamedItem(attributeName).value }.`);
+                                if (PRINT_DEBUG_MSG === true)
+                                    console.log(`${ EXTENSION_NAME }: ${ attributeName } attribute was modified on ${ target.tagName } element to ${ target.attributes.getNamedItem(attributeName).value }.`);
                                 // execute
                                 if (executeOnUpdate && typeof executeOnUpdate === `function`)
                                     executeOnUpdate(target);
