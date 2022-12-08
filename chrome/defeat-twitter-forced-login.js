@@ -6,6 +6,13 @@ const
     ELEMENT_NODE = 1,
     CONTENT_FOCUS_DIV_STYLE = `css-1dbjc4n r-aqfbo4 r-1d2f490 r-12vffkv r-1xcajam r-zchlnj`,
     ANNOYING_DIV_STYLE = `css-1dbjc4n r-aqfbo4 r-1d2f490 r-12vffkv r-1xcajam r-zchlnj r-ipm5af`,
+
+    // some "soft forced login" div has been added to the UI when content focus mode is active
+    // since at this stage the html element is monitored for style change to auto reenable scrolling,
+    // we have to remove that div as well because it makes the experience inconsistent (login invite
+    // in the foreground while the background is still scrollable ...) 
+    ANNOYING_FOCUS_DIV_STYLE = `css-1dbjc4n r-aqfbo4 r-1p0dtai r-1d2f490 r-12vffkv r-1xcajam r-zchlnj`,
+
     ROOT_WINDOW_SCROLLING_ENABLED = `overflow-y: scroll; overscroll-behavior-y: none; font-size: 15px;`,
     ROOT_WINDOW_SCROLLING_DISABLED = `overflow: hidden; overscroll-behavior-y: none; font-size: 15px; margin-right: 17px;`,
     DOM_NODE_HIDDEN = `display: none`,
@@ -172,6 +179,11 @@ let CONTENT_FOCUS_DIV_ON = false;
         // monitor layer div
         observed = document.querySelector(`#layers`);
 
+        /* ====================================================
+         * content focus : when viewing a tweet / video / photo
+         * ====================================================
+         */
+
         // setup content focus observer
         observer = createNodeSubtreeObserver(
             CONTENT_FOCUS_DIV_STYLE,
@@ -180,10 +192,14 @@ let CONTENT_FOCUS_DIV_ON = false;
             () => {
                 CONTENT_FOCUS_DIV_ON = true;
                 document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_DISABLED));
+                // information
+                console.log(`${ EXTENSION_NAME }: entering content focus mode.`);
             },
             () => {
                 CONTENT_FOCUS_DIV_ON = false;
                 document.querySelector(`html`).attributes.setNamedItem(createStyleAttr(ROOT_WINDOW_SCROLLING_ENABLED));
+                // information
+                console.log(`${ EXTENSION_NAME }: exiting content focus mode.`);
             },
             false,
             null,
@@ -197,7 +213,35 @@ let CONTENT_FOCUS_DIV_ON = false;
             childList: true
         });
 
-        // setup annoying div observer
+        // setup annoying focus mode div observer
+        observer = createNodeSubtreeObserver(
+            ANNOYING_FOCUS_DIV_STYLE,
+            null,
+            // remove annoyance
+            addedNode => {
+                addedNode.attributes.setNamedItem(createStyleAttr(DOM_NODE_HIDDEN));
+                // goodbye annoyance.
+                console.log(`${ EXTENSION_NAME }: focus mode annoyance removed.`);
+            },
+            null,
+            false,
+            null,
+            null);
+
+        // start observing
+        observer.observe(observed, {
+            // observe entire node subtree
+            subtree: true,
+            // for addition/removal of child nodes
+            childList: true
+        });
+
+        /* ====================================================
+         * default mode : when viewing a thread / tl
+         * ====================================================
+         */
+
+        // setup annoying default mode div observer
         observer = createNodeSubtreeObserver(
             ANNOYING_DIV_STYLE,
             null,
@@ -205,7 +249,7 @@ let CONTENT_FOCUS_DIV_ON = false;
             addedNode => {
                 addedNode.attributes.setNamedItem(createStyleAttr(DOM_NODE_HIDDEN));
                 // goodbye annoyance.
-                console.log(`${ EXTENSION_NAME }: annoyance removed.`);
+                console.log(`${ EXTENSION_NAME }: default mode annoyance removed.`);
             },
             null,
             false,
@@ -220,6 +264,11 @@ let CONTENT_FOCUS_DIV_ON = false;
             childList: true
         });
 
+        /* ====================================================
+         * monitor the html element whatever the mode is
+         * ====================================================
+         */
+        
         // monitor html element
         observed = document.querySelector(`html`);
 
